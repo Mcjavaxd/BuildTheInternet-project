@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>acm-dns monitor</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><h1>acm-dns</h1><span>service discovery monitor</span></div>
+  <div class="live" id="live"><i></i><span id="liveText">connecting</span></div>
+  <div class="meta" id="meta"></div>
+  <button id="logout" class="ghost" hidden>Sign out</button>
+</header>
+
+<main id="app" hidden>
+  <section class="stats" id="stats" aria-label="Totals"></section>
+
+  <section class="panel chart">
+    <div class="panel-head">
+      <h2>Traffic, last 60 seconds</h2>
+      <ul class="legend">
+        <li><b class="c-hit"></b>Resolved</li>
+        <li><b class="c-reg"></b>Registered</li>
+        <li><b class="c-miss"></b>Not found</li>
+        <li><b class="c-bad"></b>Malformed</li>
+        <li><b class="c-blocked"></b>Blocked</li>
+      </ul>
+    </div>
+    <svg id="chart" viewBox="0 0 720 170" preserveAspectRatio="none" role="img" aria-label="Requests per second"></svg>
+    <div class="axis"><span>60s ago</span><span id="peak"></span><span>now</span></div>
+  </section>
+
+  <div class="cols">
+    <section class="panel feedpanel">
+      <div class="panel-head"><h2>Live requests</h2><span class="hint" id="feedCount"></span></div>
+      <div class="feed" id="feed" aria-live="off"></div>
+    </section>
+    <aside class="side">
+      <section class="panel"><div class="panel-head"><h2>Registry</h2><span class="hint" id="recCount"></span></div><div id="records" class="list"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Blocked clients</h2></div><div id="bans" class="list"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Busiest clients</h2></div><div id="clients" class="list"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Active defences</h2></div><dl id="cfg"></dl></section>
+    </aside>
+  </div>
+</main>
+
+<div class="gate" id="gate" hidden>
+  <div class="card">
+    <h2>Sign in</h2>
+    <p>Enter the dashboard token printed in the terminal when acm-dns started.</p>
+    <label for="tok">Dashboard token</label>
+    <input id="tok" type="password" autocomplete="off" spellcheck="false">
+    <p class="err" id="err" role="alert"></p>
+    <button id="go">Sign in</button>
+  </div>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>
