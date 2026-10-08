@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Gateway | Network Topology</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Modern Typography: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons for Professional UI -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg-base: #020617;
+      --glass-bg: rgba(15, 23, 42, 0.45);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-highlight: rgba(255, 255, 255, 0.12);
+      
+      --accent-blue: #3b82f6;
+      --accent-blue-glow: rgba(59, 130, 246, 0.3);
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+      
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      
+      --font-ui: 'Inter', sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 2rem;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Animated Ambient Background Orbs */
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      z-index: -1;
+      animation: float 20s infinite ease-in-out alternate;
+    }
+    .orb-1 {
+      top: -10%; left: -5%; width: 500px; height: 500px;
+      background: rgba(59, 130, 246, 0.15);
+    }
+    .orb-2 {
+      bottom: -10%; right: -5%; width: 600px; height: 600px;
+      background: rgba(139, 92, 246, 0.12);
+      animation-delay: -10s;
+    }
+    .orb-3 {
+      top: 40%; left: 40%; width: 400px; height: 400px;
+      background: rgba(16, 185, 129, 0.08);
+      animation-duration: 25s;
+    }
+
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(30px, 50px) scale(1.1); }
+    }
+
+    /* Layout */
+    .container {
+      width: 100%;
+      max-width: 1280px;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 1.5rem;
+      position: relative;
+      z-index: 10;
+    }
+    @media(max-width: 992px) {
+      .container { grid-template-columns: 1fr; }
+    }
+
+    /* Glassmorphism Panels */
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px) saturate(150%);
+      -webkit-backdrop-filter: blur(24px) saturate(150%);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 1.75rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .main-col { display: flex; flex-direction: column; gap: 1.5rem; }
+    
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .brand-icon {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      padding: 0.5rem;
+      border-radius: 10px;
+      display: flex;
+    }
+    h1 { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; }
+    .subtitle { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.2rem; }
+
+    /* Topology Grid */
+    .topology-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    @media(max-width: 768px) {
+      .topology-container { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .node {
+      background: rgba(2, 6, 23, 0.4);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      padding: 1.5rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .node::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: transparent; transition: background 0.4s;
+    }
+    .node.active {
+      background: rgba(59, 130, 246, 0.05);
+      border-color: rgba(59, 130, 246, 0.3);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px -10px var(--accent-blue-glow);
+    }
+    .node.active::before { background: var(--accent-blue); }
+    
+    .node.success {
+      background: rgba(16, 185, 129, 0.05);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+    .node.success::before { background: var(--accent-emerald); }
+
+    .node-icon {
+      color: var(--text-main);
+      margin-bottom: 1rem;
+      opacity: 0.8;
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .node.active .node-icon { color: var(--accent-blue); opacity: 1; transform: scale(1.1); }
+    .node.success .node-icon { color: var(--accent-emerald); opacity: 1; }
+
+    .node-title { font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem; }
+    .node-meta { font-family: var(--font-code); font-size: 0.7rem; color: var(--text-muted); }
+
+    /* Terminal Console */
+    .terminal {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      flex-grow: 1;
+      min-height: 250px;
+      padding: 1.25rem;
+      font-family: var(--font-code);
+      font-size: 0.8rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .log-line { line-height: 1.5; }
+    .log-time { color: var(--text-muted); margin-right: 0.75rem; user-select: none; }
+    .log-info { color: #e2e8f0; }
+    .log-success { color: var(--accent-emerald); }
+    .log-error { color: var(--accent-rose); }
+    .log-warn { color: #f59e0b; }
+
+    /* Right Column: Controls */
+    .controls-col { display: flex; flex-direction: column; gap: 1.5rem; }
+    
+    .section-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      color: var(--text-muted);
+      width: 16px; height: 16px;
+    }
+    input {
+      width: 100%;
+      background: rgba(2, 6, 23, 0.5);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      color: var(--text-main);
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    input:focus {
+      border-color: rgba(59, 130, 246, 0.5);
+      background: rgba(2, 6, 23, 0.7);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .btn-execute {
+      width: 100%;
+      background: var(--text-main);
+      color: var(--bg-base);
+      border: none;
+      border-radius: 10px;
+      padding: 0.875rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      font-family: var(--font-ui);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+      margin-top: 0.5rem;
+    }
+    .btn-execute:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(255, 255, 255, 0.15);
+    }
+    .btn-execute:active { transform: translateY(0); }
+
+    /* Execution Flow */
+    .flow-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1rem;
+      border-radius: 12px;
+      background: rgba(2, 6, 23, 0.3);
+      border: 1px solid transparent;
+      transition: all 0.3s ease;
+    }
+    .step.pending { opacity: 0.5; }
+    .step.active {
+      background: rgba(59, 130, 246, 0.05);
+      border-color: rgba(59, 130, 246, 0.2);
+    }
+    .step.success {
+      background: rgba(16, 185, 129, 0.05);
+      border-color: rgba(16, 185, 129, 0.2);
+    }
+    .step.error {
+      background: rgba(244, 63, 94, 0.05);
+      border-color: rgba(244, 63, 94, 0.2);
+    }
+    
+    .step-icon-wrapper {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: var(--glass-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 600;
+      flex-shrink: 0;
+      transition: all 0.3s;
+    }
+    .step.active .step-icon-wrapper {
+      background: rgba(59, 130, 246, 0.2); color: var(--accent-blue);
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+    }
+    .step.success .step-icon-wrapper { background: rgba(16, 185, 129, 0.2); color: var(--accent-emerald); }
+    .step.error .step-icon-wrapper { background: rgba(244, 63, 94, 0.2); color: var(--accent-rose); }
+
+    .step-content { display: flex; flex-direction: column; gap: 0.25rem; }
+    .step-title { font-size: 0.85rem; font-weight: 500; }
+    .step-desc { font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-code); }
+
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Background -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <div class="container">
+    
+    <!-- Left Column: Visuals & Logs -->
+    <div class="main-col">
+      <div class="glass-panel">
+        <header>
+          <div class="brand">
+            <div class="brand-icon"><i data-lucide="network"></i></div>
+            <div>
+              <h1>Network Topology</h1>
+              <div class="subtitle">Real-time Service Resolution</div>
+            </div>
+          </div>
+          <i data-lucide="activity" style="color: var(--accent-emerald); width: 20px; animation: pulse 2s infinite;"></i>
+        </header>
+
+        <div class="topology-container">
+          <div id="node-client" class="node">
+            <i data-lucide="monitor" class="node-icon" width="32" height="32"></i>
+            <div class="node-title">acm-app</div>
+            <div class="node-meta">Origin</div>
+          </div>
+          <div id="node-dns" class="node">
+            <i data-lucide="globe-2" class="node-icon" width="32" height="32"></i>
+            <div class="node-title">acm-dns</div>
+            <div class="node-meta" id="meta-dns">Unreachable</div>
+          </div>
+          <div id="node-server" class="node">
+            <i data-lucide="cpu" class="node-icon" width="32" height="32"></i>
+            <div class="node-title">acm-server</div>
+            <div class="node-meta" id="meta-server">Unresolved</div>
+          </div>
+          <div id="node-db" class="node">
+            <i data-lucide="database" class="node-icon" width="32" height="32"></i>
+            <div class="node-title">acm-db</div>
+            <div class="node-meta" id="meta-db">:8083</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-panel terminal" id="terminal">
+        <div class="log-line">
+          <span class="log-time">[SYS]</span>
+          <span class="log-info">Interface initialized. Waiting for execution...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Controls -->
+    <div class="controls-col">
+      <div class="glass-panel">
+        <div class="section-title">
+          <i data-lucide="sliders" width="16"></i> Configuration
+        </div>
+        
+        <div class="form-group">
+          <label>DNS Endpoint</label>
+          <div class="input-wrapper">
+            <i data-lucide="server" class="input-icon"></i>
+            <input id="dnsHost" type="text" value="127.0.0.1:8053">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Target Domain</label>
+          <div class="input-wrapper">
+            <i data-lucide="search" class="input-icon"></i>
+            <input id="targetDomain" type="text" value="acm-server">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Username</label>
+          <div class="input-wrapper">
+            <i data-lucide="user" class="input-icon"></i>
+            <input id="username" type="text" value="alice">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-wrapper">
+            <i data-lucide="key" class="input-icon"></i>
+            <input id="password" type="password" value="cyberpass123">
+          </div>
+        </div>
+        
+        <button class="btn-execute" onclick="runPipeline()">
+          <i data-lucide="zap" width="18"></i> Initialize Handshake
+        </button>
+      </div>
+
+      <div class="glass-panel">
+        <div class="section-title">
+          <i data-lucide="list-tree" width="16"></i> Execution Flow
+        </div>
+        
+        <div class="flow-steps">
+          <div id="step-1" class="step pending">
+            <div class="step-icon-wrapper" id="icon-step-1">1</div>
+            <div class="step-content">
+              <div class="step-title">DNS Resolution</div>
+              <div class="step-desc">GET /lookup?domain=acm-server</div>
+            </div>
+          </div>
+          <div id="step-2" class="step pending">
+            <div class="step-icon-wrapper" id="icon-step-2">2</div>
+            <div class="step-content">
+              <div class="step-title">Authentication</div>
+              <div class="step-desc">POST /login payload</div>
+            </div>
+          </div>
+          <div id="step-3" class="step pending">
+            <div class="step-icon-wrapper" id="icon-step-3">3</div>
+            <div class="step-content">
+              <div class="step-title">Fallback Reg.</div>
+              <div class="step-desc">POST /register & retry</div>
+            </div>
+          </div>
+          <div id="step-4" class="step pending">
+            <div class="step-icon-wrapper" id="icon-step-4">4</div>
+            <div class="step-content">
+              <div class="step-title">Verify Session</div>
+              <div class="step-desc">GET /whoami payload</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize icons
+    lucide.createIcons();
+
+    const terminal = document.getElementById('terminal');
+
+    function log(msg, type = 'info') {
+      const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: "numeric", minute: "numeric", second: "numeric" });
+      const line = document.createElement('div');
+      line.className = 'log-line';
+      let typeClass = 'log-info';
+      if (type === 'success') typeClass = 'log-success';
+      if (type === 'error') typeClass = 'log-error';
+      if (type === 'warn') typeClass = 'log-warn';
+      
+      line.innerHTML = `<span class="log-time">[${time}]</span><span class="${typeClass}">${msg}</span>`;
+      terminal.appendChild(line);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function setStep(stepNum, status) {
+      const step = document.getElementById(`step-${stepNum}`);
+      const icon = document.getElementById(`icon-step-${stepNum}`);
+      step.className = `step ${status}`;
+      
+      if (status === 'active') icon.innerHTML = '<i data-lucide="loader-2" style="width:14px; animation: spin 1s linear infinite"></i>';
+      else if (status === 'success') icon.innerHTML = '<i data-lucide="check" style="width:14px"></i>';
+      else if (status === 'error') icon.innerHTML = '<i data-lucide="x" style="width:14px"></i>';
+      else icon.innerHTML = stepNum;
+      
+      lucide.createIcons(); // Re-render newly injected icons
+    }
+
+    function setNode(nodeId, status) {
+      document.getElementById(`node-${nodeId}`).className = `node ${status}`;
+    }
+
+    // Add spin animation dynamically for the loader
+    const style = document.createElement('style');
+    style.innerHTML = `@keyframes spin { 100% { transform: rotate(360deg); } } @keyframes pulse { 50% { opacity: 0.3; } }`;
+    document.head.appendChild(style);
+
+    async function runPipeline() {
+      const dnsHost = document.getElementById("dnsHost").value.trim();
+      const domain = document.getElementById("targetDomain").value.trim();
+      const user = document.getElementById("username").value.trim();
+      const pass = document.getElementById("password").value.trim();
+
+      // Reset
+      [1, 2, 3, 4].forEach(n => setStep(n, 'pending'));
+      ['client', 'dns', 'server', 'db'].forEach(n => setNode(n, ''));
+      setNode('client', 'active');
+      
+      let resolvedServerHost = "";
+
+      // Step 1: DNS
+      setStep(1, 'active');
+      setNode('dns', 'active');
+      log(`Resolving domain '${domain}' via ${dnsHost}...`, 'info');
+
+      try {
+        const dnsRes = await fetch(`http://${dnsHost}/lookup?domain=${domain}`);
+        if (!dnsRes.ok) throw new Error(`DNS HTTP ${dnsRes.status}`);
+        const dnsData = await dnsRes.json();
+        
+        resolvedServerHost = dnsData.address || dnsData.ip || (typeof dnsData === "string" ? dnsData : null);
+        if (!resolvedServerHost) throw new Error("Invalid DNS response structure");
+
+        document.getElementById("meta-dns").innerText = dnsHost;
+        document.getElementById("meta-server").innerText = resolvedServerHost;
+        
+        setStep(1, 'success');
+        setNode('dns', 'success');
+        log(`Resolution success: ${domain} → ${resolvedServerHost}`, 'success');
+      } catch (err) {
+        setStep(1, 'error');
+        log(`DNS Lookup failed: ${err.message}`, 'error');
+        return;
+      }
+
+      const serverUrl = resolvedServerHost.startsWith("http") ? resolvedServerHost : `http://${resolvedServerHost}`;
+
+      // Step 2: Login Attempt
+      setStep(2, 'active');
+      setNode('server', 'active');
+      log(`Authenticating user '${user}'...`, 'info');
+
+      let loginSuccess = false;
+
+      try {
+        const loginRes = await fetch(`${serverUrl}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ username: user, password: pass })
+        });
+
+        if (loginRes.ok) {
+          loginSuccess = true;
+          setStep(2, 'success');
+          setStep(3, 'success'); // Skip register
+          log('Authentication successful. Session cookie acquired.', 'success');
+        } else {
+          log(`Auth rejected (Status ${loginRes.status}). Triggering registration fallback.`, 'warn');
+          setStep(2, 'pending');
+        }
+      } catch (err) {
+        log(`Connection to server failed: ${err.message}`, 'error');
+      }
+
+      // Step 3: Register Fallback
+      if (!loginSuccess) {
+        setStep(3, 'active');
+        log(`Registering new user '${user}'...`, 'info');
+        try {
+          const regRes = await fetch(`${serverUrl}/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: user, password: pass })
+          });
+
+          if (!regRes.ok) throw new Error(`Registration rejected (HTTP ${regRes.status})`);
+          log('Registration complete. Retrying authentication...', 'success');
+
+          const retryRes = await fetch(`${serverUrl}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ username: user, password: pass })
+          });
+
+          if (!retryRes.ok) throw new Error(`Retry login failed (HTTP ${retryRes.status})`);
+          setStep(2, 'success');
+          setStep(3, 'success');
+          log('Fallback authentication successful.', 'success');
+        } catch (err) {
+          setStep(3, 'error');
+          log(`Fallback sequence failed: ${err.message}`, 'error');
+          return;
+        }
+      }
+
+      // Step 4: Verify Session
+      setStep(4, 'active');
+      setNode('db', 'active');
+      log('Validating session integrity...', 'info');
+
+      try {
+        const whoRes = await fetch(`${serverUrl}/whoami`, { method: "GET", credentials: "include" });
+        if (!whoRes.ok) throw new Error(`Verification rejected (HTTP ${whoRes.status})`);
+        
+        const sessionData = await whoRes.json();
+        setStep(4, 'success');
+        setNode('server', 'success');
+        setNode('db', 'success');
+        log(`Handshake complete. Verified identity: ${JSON.stringify(sessionData)}`, 'success');
+      } catch (err) {
+        setStep(4, 'error');
+        log(`Session verification failed: ${err.message}`, 'error');
+      }
+    }
+  </script>
+</body>
+</html>
